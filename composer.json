@@ -1,0 +1,22 @@
+{
+    "name": "enese/php-simple-db-wrapper",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "EnesEkinci\\PhpSimpleDBWrapper\\": "src/"
+        },
+        "files": [
+            "functions.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "enesekinci",
+            "email": "enes.eknc.96@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.3|^8.0"
+    }
+}
