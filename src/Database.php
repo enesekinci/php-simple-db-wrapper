@@ -168,7 +168,7 @@ class Database
         $fieldString = rtrim($fieldString, ',');
         $valueString = rtrim($valueString, ',');
         $sql = "INSERT INTO {$table} ({$fieldString}) VALUES ({$valueString})";
-        if ($this->query($sql)->error()) {
+        if (!$this->query($sql, $values)->error()) {
             return true;
         }
         return false;
@@ -176,43 +176,59 @@ class Database
 
     public function update($table, $id, $fields = [])
     {
-        # code...
+        $fieldString = "";
+        $values = [];
+        foreach ($fields as $field => $value) {
+            $fieldString .= '`' . $field . '` = ?,';
+            $values[] = $value;
+        }
+        $fieldString = trim($fieldString);
+        $fieldString = rtrim($fieldString, ",");
+        $sql = "UPDATE {$table} SET {$fieldString} WHERE id={$id}";
+        if (!$this->query($sql, $values)->error()) {
+            return true;
+        }
+        return false;
     }
 
     public function delete($table, $id)
     {
+        $sql = "DELETE FROM {$table} WHERE id={$id}";
+        if (!$this->query($sql)->error()) {
+            return true;
+        }
+        return false;
     }
 
     public function results()
     {
-        # code...
+        return $this->_result;
     }
 
     public function first()
     {
-        # code...
+        return (!empty($this->_result)) ? $this->_result[0] : false;
     }
 
     public function count()
     {
-        # code...
+        return $this->_count;
     }
 
     public function lastInsertId()
     {
-        # code...
+        return $this->_pdo->lastInsertId();
     }
 
     public function getColumns($table)
     {
+        return $this->query("SHOW COLUMNS FROM {$table}")->results();
     }
 
     public function error()
     {
-        # code...
+        return $this->_error;
     }
-
-
 
     protected function _buildJoin($join = [])
     {

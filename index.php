@@ -24,6 +24,8 @@ $params = [1, "test"];
 //     ],
 // ]);
 
-$con->insert("users", ["u" => 'test3']);
+// $con->insert("users", ["u" => 'test3']);
+
+$con->delete('users', 3);
 
 // dd($con->query($sql, $params));
