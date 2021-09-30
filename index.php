@@ -3,6 +3,7 @@
 require_once('vendor/autoload.php');
 
 use EnesEkinci\PhpSimpleDBWrapper\Database;
+use EnesEkinci\PhpSimpleDBWrapper\User;
 
 $con = Database::connect();
 $sql = "SELECT * FROM users WHERE id = ? AND u = ?";
@@ -28,4 +29,8 @@ $params = [1, "test"];
 
 $con->delete('users', 3);
 
-// dd($con->query($sql, $params));
+$user = new User();
+$user->id = 15;
+$user->u = "test3";
+
+dd(User::findById(1));
