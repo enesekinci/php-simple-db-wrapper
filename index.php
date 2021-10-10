@@ -2,12 +2,12 @@
 
 require_once('vendor/autoload.php');
 
-use EnesEkinci\PhpSimpleDBWrapper\Database;
-use EnesEkinci\PhpSimpleDBWrapper\User;
+use EnesEkinci\PhpSimpleDBWrapper\QueryBuilder as DB;
+use EnesEkinci\PhpSimpleDBWrapper\QueryBuilder;
 
-$con = Database::connect();
-$sql = "SELECT * FROM users WHERE id = ? AND u = ?";
-$params = [1, "test"];
+// $con = Database::connect();
+// $sql = "SELECT * FROM users WHERE id = ? AND u = ?";
+// $params = [1, "test"];
 
 // $con->_read("users", [
 //     'columns' => "id,u",
@@ -27,10 +27,25 @@ $params = [1, "test"];
 
 // $con->insert("users", ["u" => 'test3']);
 
-$con->delete('users', 3);
+// $con->delete('users', 3);
 
-$user = new User();
-$user->id = 15;
-$user->u = "test3";
+// $user = new User();
+// $user->id = 15;
+// $user->u = "test3";
 
-dd(User::findById(1));
+// dd(User::findById(1));
+
+
+
+
+
+
+
+
+/**
+ * 
+ */
+
+$QueryBuilder = new QueryBuilder();
+
+$QueryBuilder->table('users')->select('*')->orderBy("u")->take(1)->skip(1)->where([])->get();

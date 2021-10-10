@@ -7,7 +7,7 @@ use DateTimeZone;
 use PDO;
 use stdClass;
 
-class Model
+class _Model
 {
     protected $_modelName;
     protected $_validates = true;
