@@ -48,4 +48,6 @@ use EnesEkinci\PhpSimpleDBWrapper\QueryBuilder;
 
 $QueryBuilder = new QueryBuilder();
 
-$QueryBuilder->table('users')->select('*')->orderBy("u")->take(1)->skip(1)->where([])->get();
+$data = $QueryBuilder->table('users')->select('u')->orderBy('u')->take(1)->skip(1)->where()->orWhere()->get();
+
+dd($data);

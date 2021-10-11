@@ -78,7 +78,7 @@ final class QueryBuilder
         return $this->query("SHOW COLUMNS FROM {$table}")->result();
     }
 
-    public function query($sql, $params = [], $class = false)
+    public function query($sql, $class = false)
     {
         $this->_error = false;
 
@@ -86,13 +86,6 @@ final class QueryBuilder
 
         if (!$this->_query) {
             return $this;
-        }
-
-        if ($params) {
-            foreach ($params as $paramKey => $param) {
-                $order = $paramKey + 1;
-                $this->_query->bindValue($order, $param);
-            }
         }
 
         $result = $this->_query->execute();
@@ -117,10 +110,11 @@ final class QueryBuilder
         return $this;
     }
 
-    public function get()
+    public function get($class = false)
     {
-        $Query = QueryGenerator::selectGenerator($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
-        dd($this);
+        // dd($this->_select);
+        $SQL = QueryGenerator::selectGenerator($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
+        $this->query($SQL, $class);
         return $this->result();
     }
 
@@ -178,8 +172,19 @@ final class QueryBuilder
         return $this;
     }
 
-    public function orWhere()
+    public function orWhere(array $conditions = [])
     {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['or'] = true;
+                $this->_where[] = $condition;
+            } else {
+                $conditions['or'] = true;
+                $this->_where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
     }
 
     public function pluck()

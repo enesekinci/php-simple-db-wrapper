@@ -4,22 +4,38 @@ namespace EnesEkinci\PhpSimpleDBWrapper;
 
 final class QueryGenerator
 {
-    public static function selectGenerator($table, $columns = '*', $limit = null, $offset = null, $where = [], $orderBy = [])
+    public static function selectGenerator($table, $columns = '*', $limit = null, $offset = null, $where = [], $orderBy = [], array $joins = [])
     {
-        $columns = is_array($columns) ? implode(',', $columns) : '*';
-        $joins = "";
+        $columns = is_array($columns) ? implode(',', $columns) : $columns;
+        $joinString = "";
         $conditionString = "";
+        $conditionStrings = [];
         $orderString = "";
 
         if ($where) {
             foreach ($where as $condition) {
-                if (is_array($condition)) {
-                    $this->_where[] = $condition;
+                if (count($condition) > 2 && isset($condition[2])) {
+                    $conditionStrings[] = "{$condition[0]} {$condition[1]} {$condition[2]}";
                 } else {
-                    $this->_where[] = $conditions;
-                    break;
+                    $conditionStrings[] = "{$condition[0]} =  {$condition[1]}";
                 }
             }
+        }
+
+        foreach ($conditionStrings as $key => $string) {
+
+            if (array_key_exists('or', $where[$key])) {
+                echo $key . "<br/>";
+                $conditionString .=  " OR {$string}";
+            } else {
+                $conditionString .=  " AND {$string}";
+            }
+        }
+
+        $conditionString = ltrim($conditionString, ' OR');
+        $conditionString = ltrim($conditionString, ' AND');
+        if ($conditionString) {
+            $conditionString = "WHERE {$conditionString}";
         }
 
         if ($orderBy) {
@@ -39,8 +55,15 @@ final class QueryGenerator
             $offset = "OFFSET {$offset}";
         }
 
-        $QueryString = "SELECT {$columns} FROM {$table} {$joins} {$conditionString} {$orderString} {$limit} {$offset}";
-        dd($QueryString, func_get_args());
+        if ($joins) {
+            foreach ($joins as $join) {
+                $joinString .= static::_buildJoin($join);
+            }
+            $joinString .= " ";
+        }
+
+        $QueryString = "SELECT {$columns} FROM {$table} {$joinString} {$conditionString} {$orderString} {$limit} {$offset}";
+        return $QueryString;
     }
 
     public static function insertGenerator($table, $columns, $fields)
@@ -56,5 +79,15 @@ final class QueryGenerator
     public static function deleteGenerator($table, $where = [])
     {
         #
+    }
+
+    protected static function _buildJoin($join = [])
+    {
+        $table = $join[0];
+        $condition = $join[1];
+        $alias = $join[2];
+        $type = (isset($join[3])) ? strtoupper($join[3]) : ' INNER ';
+        $jString = " {$type} JOIN {$table} {$alias} ON {$condition}";
+        return $jString;
     }
 }
