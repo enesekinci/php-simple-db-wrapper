@@ -112,10 +112,15 @@ final class QueryBuilder
 
     public function get($class = false)
     {
-        // dd($this->_select);
         $SQL = QueryGenerator::selectGenerator($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
         $this->query($SQL, $class);
+        $this->restartParams();
         return $this->result();
+    }
+
+    public function update()
+    {
+        $SQL = QueryGenerator::updateGenerator($this->_table, $this->_where);
     }
 
     public function count()
@@ -195,9 +200,7 @@ final class QueryBuilder
     {
     }
 
-    public function update()
-    {
-    }
+
 
     public function max()
     {
@@ -265,5 +268,18 @@ final class QueryBuilder
 
     public function whereDate()
     {
+    }
+
+    protected function restartParams(): void
+    {
+        $this->_table = null;
+        // $this->_query = null;
+        $this->_select = '*';
+        // $this->_error = false;
+        $this->_fetchStyle = PDO::FETCH_OBJ;
+        $this->_limit = null;
+        $this->_offset = null;
+        $this->_where = [];
+        $this->_orderBy = [];
     }
 }

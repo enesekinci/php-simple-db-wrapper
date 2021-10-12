@@ -37,11 +37,6 @@ use EnesEkinci\PhpSimpleDBWrapper\QueryBuilder;
 
 
 
-
-
-
-
-
 /**
  * 
  */
@@ -50,4 +45,5 @@ $QueryBuilder = new QueryBuilder();
 
 $data = $QueryBuilder->table('users')->select('u')->orderBy('u')->take(1)->skip(1)->where()->orWhere()->get();
 
+$QueryBuilder->table('users')->update(['u' => 'test']);
 dd($data);
