@@ -78,7 +78,7 @@ final class QueryBuilder
         return $this->query("SHOW COLUMNS FROM {$table}")->result();
     }
 
-    public function query($sql, $class = false)
+    public function query($sql, $params = [], $class = false)
     {
         $this->_error = false;
 
@@ -87,11 +87,17 @@ final class QueryBuilder
         if (!$this->_query) {
             return $this;
         }
+        if ($params) {
+            foreach (array_values($params) as $key => $param) {
+                $this->_query->bindValue($key + 1, $param);
+            }
+        }
 
         $result = $this->_query->execute();
 
         if (!is_bool($result) || $result !== true) {
-            dd($result);
+            $this->_error = true;
+            dd("result error", $result, $this->_error);
         }
 
         if ($result) {
@@ -100,7 +106,6 @@ final class QueryBuilder
             } else {
                 $this->_result = $this->_query->fetchAll($this->_fetchStyle);
             }
-
             $this->_count = $this->_query->rowCount();
             $this->_lastInsertId = $this->_pdo->lastInsertId();
         } else {
@@ -112,20 +117,44 @@ final class QueryBuilder
 
     public function get($class = false)
     {
-        $SQL = QueryGenerator::selectGenerator($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
-        $this->query($SQL, $class);
+        $SQL = QueryGenerator::select($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
+        $this->query($SQL, [], $class);
         $this->restartParams();
         return $this->result();
     }
 
-    public function update()
+    public function insert(array $fields, $class = false)
     {
-        $SQL = QueryGenerator::updateGenerator($this->_table, $this->_where);
+        $SQL = QueryGenerator::insert($this->_table, $fields);
+        $this->query($SQL, $fields, $class);
+        $this->restartParams();
+        return $this->result();
+    }
+
+    public function update(array $fields, $class = false)
+    {
+        $SQL = QueryGenerator::update($this->_table, $fields, $this->_where);
+        $this->query($SQL, $fields, $class);
+        $this->restartParams();
+        return $this->error();
+    }
+
+    public function delete()
+    {
+        $SQL = QueryGenerator::delete($this->_table, $this->_where);
+        $this->query($SQL, [], false);
+        $this->restartParams();
+        return $this->error();
     }
 
     public function count()
     {
         return $this->_count;
+    }
+
+    public function error()
+    {
+        return !$this->_error;
     }
 
     public function first()
@@ -134,6 +163,10 @@ final class QueryBuilder
         return (!empty($result)) ? $result[0] : false;
     }
 
+    public function lastInsertId()
+    {
+        return $this->_lastInsertId;
+    }
 
 
     public function chunck(int $length, bool $preserve_keys = false)
@@ -151,8 +184,6 @@ final class QueryBuilder
     {
         #
     }
-
-
 
     public function find()
     {
@@ -270,13 +301,18 @@ final class QueryBuilder
     {
     }
 
+    public function setFetchStyle($fetchStyle)
+    {
+        $this->_fetchStyle = $fetchStyle;
+    }
+
     protected function restartParams(): void
     {
         $this->_table = null;
         // $this->_query = null;
         $this->_select = '*';
         // $this->_error = false;
-        $this->_fetchStyle = PDO::FETCH_OBJ;
+        // $this->_fetchStyle = PDO::FETCH_OBJ;
         $this->_limit = null;
         $this->_offset = null;
         $this->_where = [];

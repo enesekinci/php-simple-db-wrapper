@@ -4,6 +4,7 @@ require_once('vendor/autoload.php');
 
 use EnesEkinci\PhpSimpleDBWrapper\QueryBuilder as DB;
 use EnesEkinci\PhpSimpleDBWrapper\QueryBuilder;
+use EnesEkinci\PhpSimpleDBWrapper\User;
 
 // $con = Database::connect();
 // $sql = "SELECT * FROM users WHERE id = ? AND u = ?";
@@ -42,8 +43,17 @@ use EnesEkinci\PhpSimpleDBWrapper\QueryBuilder;
  */
 
 $QueryBuilder = new QueryBuilder();
+$QueryBuilder->setFetchStyle(PDO::FETCH_CLASS);
+$data = $QueryBuilder->table('users')->orderBy('u')->where()->orWhere()->get(User::class);
+// $data = $QueryBuilder->table('users')->select('u')->orderBy('u')->take(1)->skip(1)->where()->orWhere()->get();
+dd($data, $data[0]::$_table, User::class);
+// $update = $QueryBuilder->table('users')->where(['u', 'test2'])->update(['u' => 'test']);
 
-$data = $QueryBuilder->table('users')->select('u')->orderBy('u')->take(1)->skip(1)->where()->orWhere()->get();
+// $insert = $QueryBuilder->table('users')
+// ->insert([
+// 'u' => 'test3'
+// ]);
 
-$QueryBuilder->table('users')->update(['u' => 'test']);
-dd($data);
+$delete = $QueryBuilder->table('users')->where(['u', 'test2'])->orWhere(['u', 'test3'])->delete();
+
+dd(["delete" => $delete]);

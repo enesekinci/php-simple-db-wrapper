@@ -4,9 +4,9 @@ namespace EnesEkinci\PhpSimpleDBWrapper;
 
 use EnesEkinci\PhpSimpleDBWrapper\_Model;
 
-class User extends _Model
+class User
 {
-    protected static $_table = "users";
+    public static $_table = "users";
     public $id;
     public $u;
 }
