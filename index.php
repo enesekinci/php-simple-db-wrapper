@@ -44,9 +44,8 @@ use EnesEkinci\PhpSimpleDBWrapper\User;
 
 $QueryBuilder = new QueryBuilder();
 $QueryBuilder->setFetchStyle(PDO::FETCH_CLASS);
-$data = $QueryBuilder->table('users')->orderBy('u')->where()->orWhere()->get(User::class);
+// $data = $QueryBuilder->table('users')->orderBy('u')->where()->orWhere()->get(User::class);
 // $data = $QueryBuilder->table('users')->select('u')->orderBy('u')->take(1)->skip(1)->where()->orWhere()->get();
-dd($data, $data[0]::$_table, User::class);
 // $update = $QueryBuilder->table('users')->where(['u', 'test2'])->update(['u' => 'test']);
 
 // $insert = $QueryBuilder->table('users')
@@ -54,6 +53,12 @@ dd($data, $data[0]::$_table, User::class);
 // 'u' => 'test3'
 // ]);
 
-$delete = $QueryBuilder->table('users')->where(['u', 'test2'])->orWhere(['u', 'test3'])->delete();
+// $delete = $QueryBuilder->table('users')->where(['u', 'test2'])->orWhere(['u', 'test3'])->delete();
 
-dd(["delete" => $delete]);
+// dd(["delete" => $delete]);
+
+
+$user = new User();
+// $data = $user->where(['u', 'test'])->get();
+
+$data = $user->insert(['u' => 'test5']);

@@ -118,8 +118,8 @@ final class QueryBuilder
     public function get($class = false)
     {
         $SQL = QueryGenerator::select($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
-        $this->query($SQL, [], $class);
-        $this->restartParams();
+        $this->query($SQL, [], $class)
+            ->restartParams();
         return $this->result();
     }
 
@@ -308,7 +308,7 @@ final class QueryBuilder
 
     protected function restartParams(): void
     {
-        $this->_table = null;
+        // $this->_table = null;
         // $this->_query = null;
         $this->_select = '*';
         // $this->_error = false;
