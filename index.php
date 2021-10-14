@@ -68,7 +68,7 @@ $QueryBuilder->setFetchStyle(PDO::FETCH_CLASS);
 // dd(User::insert(['u' => 'test6']));
 // dd(User::findById(49));
 
-dd(User::orWhere(['u', 'test'])->whereIn(['u', ['test', 'test2', 'tet3']])->get());
+dd(User::orWhere(['u', 'test'])->whereIn(['u', ['test', 'test2', 'tet3', null]])->get());
 
 // $data = $user->where(['u', 'test'])->get();
 

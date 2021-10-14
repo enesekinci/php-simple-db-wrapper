@@ -116,7 +116,6 @@ abstract class __QueryModel
     public function __call($methodName, $arguments)
     {
         $queryMethods = ['where', 'orWhere', 'whereIn', 'orderBy', 'take', 'skip', 'select', 'delete', 'get'];
-        dd($queryMethods, "caşş");
         if (in_array($methodName, $queryMethods)) {
             static::database()->{$methodName}(...$arguments);
             return $this;

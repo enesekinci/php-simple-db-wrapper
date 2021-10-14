@@ -81,7 +81,7 @@ class QueryConditionGenerator
     public static function whereIn(array $whereIn)
     {
         $column = $whereIn[0];
-        $values = array_map(fn ($value) => is_null($value) ? "NULL" : "'{$value}'", $whereIn[1]);
+        $values = array_map(fn ($value) => is_null($value) ? 'NULL' : "'{$value}'", $whereIn[1]);
         $valueText = '(' . implode(',', $values) . ')';
         $sentence = " AND `{$column}` IN {$valueText}";
         return $sentence;

@@ -129,7 +129,6 @@ final class QueryBuilder
         }
 
         $SQL = QueryGenerator::select($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
-        dd($SQL, $class);
         $this->query($SQL, [], $class)
             ->restartParams();
         return $this->result();
