@@ -2,7 +2,7 @@
 
 namespace EnesEkinci\PhpSimpleDBWrapper;
 
-use EnesEkinci\PhpSimpleDBWrapper\_Model;
+use EnesEkinci\PhpSimpleDBWrapper\QueryModel;
 
 class User extends QueryModel
 {

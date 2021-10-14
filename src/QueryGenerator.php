@@ -2,6 +2,8 @@
 
 namespace EnesEkinci\PhpSimpleDBWrapper;
 
+use EnesEkinci\PhpSimpleDBWrapper\QueryConditionGenerator;
+
 final class QueryGenerator
 {
     public static function select($table, $columns = '*', $limit = null, $offset = null, $where = [], $orderBy = [], array $joins = [])
@@ -9,11 +11,11 @@ final class QueryGenerator
 
         $columns = static::_buildColumns($columns);
 
-        $conditionString = static::_buildConditions($where);
+        $conditionString = QueryConditionGenerator::buildConditions($where);
 
         $orderString = static::_buildOrderBy($orderBy);
 
-        $limit =  $limit ? "LIMIT {$limit}" : $limit;
+        $limit = $limit ? "LIMIT {$limit}" : $limit;
 
         $offset = $offset ? "OFFSET {$offset}" : $offset;
 
@@ -39,7 +41,7 @@ final class QueryGenerator
 
     public static function update($table, $fields, $where = [])
     {
-        $conditionString = static::_buildConditions($where);
+        $conditionString = QueryConditionGenerator::buildConditions($where);
         $fieldParamString = static::_buildFieldParams($fields);
         $QueryString = "UPDATE `{$table}` SET {$fieldParamString} {$conditionString}";
         return $QueryString;
@@ -47,7 +49,7 @@ final class QueryGenerator
 
     public static function delete(string $table, array $where = [])
     {
-        $conditionString = static::_buildConditions($where);
+        $conditionString = QueryConditionGenerator::buildConditions($where);
         $QueryString = "DELETE FROM {$table} {$conditionString}";
         return $QueryString;
     }
@@ -73,39 +75,6 @@ final class QueryGenerator
         }
         $valueString = rtrim(trim($valueString), ',');
         return $valueString;
-    }
-
-    protected static function _buildConditions(array $where)
-    {
-        $conditionString = "";
-        $conditionStrings = [];
-
-        if ($where) {
-            foreach ($where as $condition) {
-                if (count($condition) > 2 && isset($condition[2])) {
-                    $conditionStrings[] = "`{$condition[0]}` {$condition[1]} '{$condition[2]}'";
-                } else {
-                    $conditionStrings[] = "`{$condition[0]}` =  '{$condition[1]}'";
-                }
-            }
-        }
-
-        foreach ($conditionStrings as $key => $string) {
-            if (array_key_exists('or', $where[$key])) {
-                echo $key . "<br/>";
-                $conditionString .=  " OR {$string}";
-            } else {
-                $conditionString .=  " AND {$string}";
-            }
-        }
-
-        $conditionString = ltrim($conditionString, ' OR');
-        $conditionString = ltrim($conditionString, ' AND');
-
-        if ($conditionString) {
-            $conditionString = "WHERE {$conditionString}";
-        }
-        return $conditionString;
     }
 
     protected static function _buildOrderBy($orderBy)

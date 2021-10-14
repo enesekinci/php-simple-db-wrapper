@@ -6,7 +6,7 @@ use BadMethodCallException;
 use EnesEkinci\PhpSimpleDBWrapper\Exception\JsonEncodingException;
 use PDO;
 
-abstract class QueryModel
+abstract class __QueryModel
 {
     protected static $database = null;
     protected $connection;
@@ -29,7 +29,6 @@ abstract class QueryModel
             static::$database = new QueryBuilder();
             static::$database->table(static::table());
             static::$database->setFetchStyle(PDO::FETCH_CLASS);
-            static::$database->setClass(static::className());
         }
         return static::$database;
     }

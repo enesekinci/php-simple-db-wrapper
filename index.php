@@ -58,7 +58,18 @@ $QueryBuilder->setFetchStyle(PDO::FETCH_CLASS);
 // dd(["delete" => $delete]);
 
 
-$user = new User();
+// $user = new User();
+
+// User::insert([
+// 'u' => 'test6',
+// ]);
+
+// dd(User::get());
+// dd(User::insert(['u' => 'test6']));
+// dd(User::findById(49));
+
+dd(User::orWhere(['u', 'test'])->whereIn(['u', ['test', 'test2', 'tet3']])->get());
+
 // $data = $user->where(['u', 'test'])->get();
 
-$data = $user->insert(['u' => 'test5']);
+// $data = $user->insert(['u' => 'test5']);

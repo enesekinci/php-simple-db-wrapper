@@ -168,9 +168,12 @@ class Database
         $fieldString = rtrim($fieldString, ',');
         $valueString = rtrim($valueString, ',');
         $sql = "INSERT INTO {$table} ({$fieldString}) VALUES ({$valueString})";
+        dd($sql);
         if (!$this->query($sql, $values)->error()) {
+            dd($this);
             return true;
         }
+        dd("error");
         return false;
     }
 

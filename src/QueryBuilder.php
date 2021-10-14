@@ -3,6 +3,7 @@
 namespace EnesEkinci\PhpSimpleDBWrapper;
 
 use PDO;
+use stdClass;
 use Throwable;
 
 final class QueryBuilder
@@ -20,6 +21,7 @@ final class QueryBuilder
     protected $_where = [];
     protected $_orderBy = [];
     protected $_result = null;
+    protected $_class = null;
 
     public function __construct()
     {
@@ -80,8 +82,13 @@ final class QueryBuilder
 
     public function query($sql, $params = [], $class = false)
     {
+        if (!$class) {
+            $class = $this->_class;
+        }
+
         $this->_error = false;
 
+        dd($sql);
         $this->_query = $this->_pdo->prepare($sql);
 
         if (!$this->_query) {
@@ -117,7 +124,12 @@ final class QueryBuilder
 
     public function get($class = false)
     {
+        if (!$class) {
+            $class = $this->_class;
+        }
+
         $SQL = QueryGenerator::select($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
+        dd($SQL, $class);
         $this->query($SQL, [], $class)
             ->restartParams();
         return $this->result();
@@ -125,14 +137,22 @@ final class QueryBuilder
 
     public function insert(array $fields, $class = false)
     {
+        if (!$class) {
+            $class = $this->_class;
+        }
+
         $SQL = QueryGenerator::insert($this->_table, $fields);
         $this->query($SQL, $fields, $class);
         $this->restartParams();
-        return $this->result();
+        return $this->error();
     }
 
     public function update(array $fields, $class = false)
     {
+        if (!$class) {
+            $class = $this->_class;
+        }
+
         $SQL = QueryGenerator::update($this->_table, $fields, $this->_where);
         $this->query($SQL, $fields, $class);
         $this->restartParams();
@@ -179,22 +199,6 @@ final class QueryBuilder
         $this->_where[] = $where;
     }
 
-
-    public function initial()
-    {
-        #
-    }
-
-    public function find()
-    {
-        #
-    }
-
-    public function findById()
-    {
-        #
-    }
-
     public function where(array $conditions = [])
     {
         foreach ($conditions as $condition) {
@@ -212,15 +216,34 @@ final class QueryBuilder
     {
         foreach ($conditions as $condition) {
             if (is_array($condition)) {
-                $condition['or'] = true;
+                $condition['OR'] = true;
                 $this->_where[] = $condition;
             } else {
-                $conditions['or'] = true;
+                $conditions['OR'] = true;
                 $this->_where[] = $conditions;
                 break;
             }
         }
         return $this;
+    }
+
+    public function whereIn(array $conditions = [])
+    {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['IN'] = true;
+                $this->_where[] = $condition;
+            } else {
+                $conditions['IN'] = true;
+                $this->_where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
+    }
+
+    public function whereNotIn()
+    {
     }
 
     public function pluck()
@@ -230,8 +253,6 @@ final class QueryBuilder
     public function value()
     {
     }
-
-
 
     public function max()
     {
@@ -285,14 +306,6 @@ final class QueryBuilder
     {
     }
 
-    public function whereIn()
-    {
-    }
-
-    public function whereNotIn()
-    {
-    }
-
     public function whereNotNull()
     {
     }
@@ -304,6 +317,13 @@ final class QueryBuilder
     public function setFetchStyle($fetchStyle)
     {
         $this->_fetchStyle = $fetchStyle;
+        return $this;
+    }
+
+    public function setClass($class)
+    {
+        $this->_class = $class;
+        return $this;
     }
 
     protected function restartParams(): void
