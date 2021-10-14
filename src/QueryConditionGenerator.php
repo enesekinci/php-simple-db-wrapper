@@ -43,7 +43,24 @@ class QueryConditionGenerator
 
     public static function where(array $where)
     {
-        # code...
+        $column = $where[0];
+        if (count($where) > 2 && isset($where[2])) {
+
+            if (is_null($where[2])) {
+                $comparison = 'IS NULL';
+            } else {
+                $comparison = "'{$where[2]}'";
+            }
+            $sentence = " AND `{$column}` {$where[1]} {$comparison}";
+        }
+        if (is_null($where[1])) {
+            $comparison = 'IS NULL';
+        } else {
+            $comparison = "'{$where[1]}'";
+        }
+        $sentence = " AND `{$column}` = {$comparison}";
+
+        return $sentence;
     }
 
     public static function orWhere(array $where)
@@ -68,14 +85,38 @@ class QueryConditionGenerator
         return $sentence;
     }
 
-    public static function whereNot(array $whereNot)
+    public static function whereNot(array $where)
     {
-        # code...
+        $column = $where[0];
+        if (count($where) > 2 && isset($where[2])) {
+
+            if (is_null($where[2])) {
+                $comparison = 'IS NULL';
+            } else {
+                $comparison = "'{$where[2]}'";
+            }
+            $sentence = " NOT `{$column}` {$where[1]} {$comparison}";
+        }
+        if (is_null($where[1])) {
+            $comparison = 'IS NULL';
+        } else {
+            $comparison = "'{$where[1]}'";
+        }
+        $sentence = " NOT `{$column}` = {$comparison}";
+
+        return $sentence;
     }
 
-    public static function whereNull(array $whereNull)
+    public static function whereNull(array $where)
     {
-        # code...
+        $sentence = "`{$where[0]}` IS NULL ";
+        return $sentence;
+    }
+
+    public static function whereNotNull(array $where)
+    {
+        $sentence = "`{$where[0]}` IS NOT NULL ";
+        return $sentence;
     }
 
     public static function whereIn(array $whereIn)

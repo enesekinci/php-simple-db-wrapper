@@ -88,7 +88,6 @@ final class QueryBuilder
 
         $this->_error = false;
 
-        dd($sql);
         $this->_query = $this->_pdo->prepare($sql);
 
         if (!$this->_query) {
@@ -241,6 +240,13 @@ final class QueryBuilder
         return $this;
     }
 
+    public function whereNull(string $column)
+    {
+        $condition = [$column, 'NULL' => true];
+        $this->_where[] = $condition;
+        return $this;
+    }
+
     public function whereNotIn()
     {
     }
@@ -285,9 +291,7 @@ final class QueryBuilder
     {
     }
 
-    public function whereNull()
-    {
-    }
+
 
     public function union()
     {
