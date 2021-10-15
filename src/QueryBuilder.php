@@ -8,20 +8,24 @@ use Throwable;
 
 final class QueryBuilder
 {
-    protected $_pdo;
-    protected $_query;
-    protected $_table;
-    protected $_select = '*';
-    protected $_count;
-    protected $_error = false;
-    protected $_fetchStyle = PDO::FETCH_OBJ;
-    protected $_lastInsertId;
-    protected $_limit;
-    protected $_offset;
-    protected $_where = [];
-    protected $_orderBy = [];
-    protected $_result = null;
-    protected $_class = null;
+    protected $pdo;
+    protected $query;
+    protected $table;
+    protected $select = '*';
+    protected $count;
+    protected $max;
+    protected $min;
+    protected $avg;
+    protected $sum;
+    protected $error = false;
+    protected $fetchStyle = PDO::FETCH_OBJ;
+    protected $lastInsertId;
+    protected $limit;
+    protected $offset;
+    protected $where = [];
+    protected $orderBy = [];
+    protected $result = null;
+    protected $class = null;
 
     public function __construct()
     {
@@ -31,10 +35,10 @@ final class QueryBuilder
         $this->password = "";
 
         try {
-            $this->_pdo = new PDO('mysql:host=' . $this->host . ';dbname=' . $this->dbname . ';charset=utf8', $this->user, $this->password);
+            $this->pdo = new PDO('mysql:host=' . $this->host . ';dbname=' . $this->dbname . ';charset=utf8', $this->user, $this->password);
             // set the PDO error mode to exception
-            $this->_pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->_pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
         } catch (Throwable $th) {
             die($th->getMessage());
         }
@@ -42,37 +46,37 @@ final class QueryBuilder
 
     public function table($table)
     {
-        $this->_table = $table;
+        $this->table = $table;
         return $this;
     }
 
     public function orderBy($column, $sort = "ASC")
     {
-        $this->_orderBy[] = [$column, $sort];
+        $this->orderBy[] = [$column, $sort];
         return $this;
     }
 
     public function take(int $limit)
     {
-        $this->_limit = $limit;
+        $this->limit = $limit;
         return $this;
     }
 
     public function skip(int $offset)
     {
-        $this->_offset = $offset;
+        $this->offset = $offset;
         return $this;
     }
 
     public function select($columns = '*')
     {
-        $this->_select = is_array($columns) ? implode(',', $columns) : $columns;
+        $this->select = is_array($columns) ? implode(',', $columns) : $columns;
         return $this;
     }
 
     public function result()
     {
-        return $this->_result;
+        return $this->result;
     }
 
     public function getColumns($table)
@@ -83,39 +87,40 @@ final class QueryBuilder
     public function query($sql, $params = [], $class = false)
     {
         if (!$class) {
-            $class = $this->_class;
+            $class = $this->class;
         }
 
-        $this->_error = false;
+        $this->error = false;
 
-        $this->_query = $this->_pdo->prepare($sql);
+        dd($sql);
+        $this->query = $this->pdo->prepare($sql);
 
-        if (!$this->_query) {
+        if (!$this->query) {
             return $this;
         }
         if ($params) {
             foreach (array_values($params) as $key => $param) {
-                $this->_query->bindValue($key + 1, $param);
+                $this->query->bindValue($key + 1, $param);
             }
         }
 
-        $result = $this->_query->execute();
+        $result = $this->query->execute();
 
         if (!is_bool($result) || $result !== true) {
-            $this->_error = true;
-            dd("result error", $result, $this->_error);
+            $this->error = true;
+            dd("result error", $result, $this->error);
         }
 
         if ($result) {
-            if ($class &&  $this->_fetchStyle === PDO::FETCH_CLASS) {
-                $this->_result = $this->_query->fetchAll($this->_fetchStyle, $class);
+            if ($class &&  $this->fetchStyle === PDO::FETCH_CLASS) {
+                $this->result = $this->query->fetchAll($this->fetchStyle, $class);
             } else {
-                $this->_result = $this->_query->fetchAll($this->_fetchStyle);
+                $this->result = $this->query->fetchAll($this->fetchStyle);
             }
-            $this->_count = $this->_query->rowCount();
-            $this->_lastInsertId = $this->_pdo->lastInsertId();
+            $this->count = $this->query->rowCount();
+            $this->lastInsertId = $this->pdo->lastInsertId();
         } else {
-            $this->_error = true;
+            $this->error = true;
         }
 
         return $this;
@@ -124,10 +129,10 @@ final class QueryBuilder
     public function get($class = false)
     {
         if (!$class) {
-            $class = $this->_class;
+            $class = $this->class;
         }
 
-        $SQL = QueryGenerator::select($this->_table, $this->_select, $this->_limit, $this->_offset, $this->_where, $this->_orderBy);
+        $SQL = QueryGenerator::select($this->table, $this->select, $this->limit, $this->offset, $this->where, $this->orderBy);
         $this->query($SQL, [], $class)
             ->restartParams();
         return $this->result();
@@ -136,10 +141,10 @@ final class QueryBuilder
     public function insert(array $fields, $class = false)
     {
         if (!$class) {
-            $class = $this->_class;
+            $class = $this->class;
         }
 
-        $SQL = QueryGenerator::insert($this->_table, $fields);
+        $SQL = QueryGenerator::insert($this->table, $fields);
         $this->query($SQL, $fields, $class);
         $this->restartParams();
         return $this->error();
@@ -148,10 +153,10 @@ final class QueryBuilder
     public function update(array $fields, $class = false)
     {
         if (!$class) {
-            $class = $this->_class;
+            $class = $this->class;
         }
 
-        $SQL = QueryGenerator::update($this->_table, $fields, $this->_where);
+        $SQL = QueryGenerator::update($this->table, $fields, $this->where);
         $this->query($SQL, $fields, $class);
         $this->restartParams();
         return $this->error();
@@ -159,7 +164,7 @@ final class QueryBuilder
 
     public function delete()
     {
-        $SQL = QueryGenerator::delete($this->_table, $this->_where);
+        $SQL = QueryGenerator::delete($this->table, $this->where);
         $this->query($SQL, [], false);
         $this->restartParams();
         return $this->error();
@@ -167,12 +172,12 @@ final class QueryBuilder
 
     public function count()
     {
-        return $this->_count;
+        return $this->count;
     }
 
     public function error()
     {
-        return !$this->_error;
+        return !$this->error;
     }
 
     public function first()
@@ -183,27 +188,42 @@ final class QueryBuilder
 
     public function lastInsertId()
     {
-        return $this->_lastInsertId;
+        return $this->lastInsertId;
     }
 
 
     public function chunck(int $length, bool $preserve_keys = false)
     {
-        return array_chunk($this->_result, $length, $preserve_keys);
+        return array_chunk($this->result, $length, $preserve_keys);
     }
 
     protected function addCondition(array $where)
     {
-        $this->_where[] = $where;
+        $this->where[] = $where;
     }
 
     public function where(array $conditions = [])
     {
         foreach ($conditions as $condition) {
             if (is_array($condition)) {
-                $this->_where[] = $condition;
+                $this->where[] = $condition;
             } else {
-                $this->_where[] = $conditions;
+                $this->where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
+    }
+
+    public function whereNot(array $conditions = [])
+    {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['NOT'] = true;
+                $this->where[] = $condition;
+            } else {
+                $conditions['NOT'] = true;
+                $this->where[] = $conditions;
                 break;
             }
         }
@@ -215,25 +235,10 @@ final class QueryBuilder
         foreach ($conditions as $condition) {
             if (is_array($condition)) {
                 $condition['OR'] = true;
-                $this->_where[] = $condition;
+                $this->where[] = $condition;
             } else {
                 $conditions['OR'] = true;
-                $this->_where[] = $conditions;
-                break;
-            }
-        }
-        return $this;
-    }
-
-    public function whereIn(array $conditions = [])
-    {
-        foreach ($conditions as $condition) {
-            if (is_array($condition)) {
-                $condition['IN'] = true;
-                $this->_where[] = $condition;
-            } else {
-                $conditions['IN'] = true;
-                $this->_where[] = $conditions;
+                $this->where[] = $conditions;
                 break;
             }
         }
@@ -243,12 +248,110 @@ final class QueryBuilder
     public function whereNull(string $column)
     {
         $condition = [$column, 'NULL' => true];
-        $this->_where[] = $condition;
+        $this->where[] = $condition;
         return $this;
     }
 
-    public function whereNotIn()
+    public function whereNotNull(string $column)
     {
+        $condition = [$column, 'NOT_NULL' => true];
+        $this->where[] = $condition;
+        return $this;
+    }
+
+    public function whereIn(array $conditions = [])
+    {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['IN'] = true;
+                $this->where[] = $condition;
+            } else {
+                $conditions['IN'] = true;
+                $this->where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
+    }
+
+    public function whereNotIn(array $conditions = [])
+    {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['NOT_IN'] = true;
+                $this->where[] = $condition;
+            } else {
+                $conditions['NOT_IN'] = true;
+                $this->where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
+    }
+
+    public function whereBetween(array $conditions)
+    {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['BETWEEN'] = true;
+                $this->where[] = $condition;
+            } else {
+                $conditions['BETWEEN'] = true;
+                $this->where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
+    }
+
+    public function whereNotBetween(array $conditions)
+    {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['NOT_BETWEEN'] = true;
+                $this->where[] = $condition;
+            } else {
+                $conditions['NOT_BETWEEN'] = true;
+                $this->where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
+    }
+
+    public function whereLike(array $conditions)
+    {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['LIKE'] = true;
+                $this->where[] = $condition;
+            } else {
+                $conditions['LIKE'] = true;
+                $this->where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
+    }
+
+    public function whereNotLike(array $conditions)
+    {
+        foreach ($conditions as $condition) {
+            if (is_array($condition)) {
+                $condition['NOT_LIKE'] = true;
+                $this->where[] = $condition;
+            } else {
+                $conditions['NOT_LIKE'] = true;
+                $this->where[] = $conditions;
+                break;
+            }
+        }
+        return $this;
+    }
+
+    public function each(callable $callback)
+    {
+        return array_map($callback, $this->result());
     }
 
     public function pluck()
@@ -259,12 +362,33 @@ final class QueryBuilder
     {
     }
 
-    public function max()
+    public function max(string $column, ?string $as = null)
     {
+        $this->max = ['column' => $column, 'as' => $as];
+        $SQL = QueryGenerator::select($this->table, $this->select, $this->limit, $this->offset, $this->where, $this->orderBy, $this->max);
+        $this->query($SQL, [])
+            ->restartParams();
+        return $this->result();
+
+        return $this->result();
     }
 
-    public function avg()
+    public function min(array $column, ?string $as)
     {
+        $this->min = ['column' => $column, 'as' => $as];
+        return $this;
+    }
+
+    public function avg(array $column, ?string $as)
+    {
+        $this->avg = ['column' => $column, 'as' => $as];
+        return $this;
+    }
+
+    public function sum(array $column, ?string $as)
+    {
+        $this->sum = ['column' => $column, 'as' => $as];
+        return $this;
     }
 
     public function distinct()
@@ -301,44 +425,32 @@ final class QueryBuilder
     {
     }
 
-    public function whereBetween()
-    {
-    }
-
-    public function whereNotBetween()
-    {
-    }
-
-    public function whereNotNull()
-    {
-    }
-
     public function whereDate()
     {
     }
 
     public function setFetchStyle($fetchStyle)
     {
-        $this->_fetchStyle = $fetchStyle;
+        $this->fetchStyle = $fetchStyle;
         return $this;
     }
 
     public function setClass($class)
     {
-        $this->_class = $class;
+        $this->class = $class;
         return $this;
     }
 
     protected function restartParams(): void
     {
-        // $this->_table = null;
-        // $this->_query = null;
-        $this->_select = '*';
-        // $this->_error = false;
-        // $this->_fetchStyle = PDO::FETCH_OBJ;
-        $this->_limit = null;
-        $this->_offset = null;
-        $this->_where = [];
-        $this->_orderBy = [];
+        // $this->table = null;
+        // $this->query = null;
+        $this->select = '*';
+        // $this->error = false;
+        // $this->fetchStyle = PDO::FETCH_OBJ;
+        $this->limit = null;
+        $this->offset = null;
+        $this->where = [];
+        $this->orderBy = [];
     }
 }

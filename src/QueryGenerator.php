@@ -6,10 +6,10 @@ use EnesEkinci\PhpSimpleDBWrapper\QueryConditionGenerator;
 
 final class QueryGenerator
 {
-    public static function select($table, $columns = '*', $limit = null, $offset = null, $where = [], $orderBy = [], array $joins = [])
+    public static function select($table, $columns = '*', $limit = null, $offset = null, $where = [], $orderBy = [], array $max = [], array $joins = [])
     {
 
-        $columns = static::_buildColumns($columns);
+        $columns = static::_buildColumns($columns, $max);
 
         $conditionString = QueryConditionGenerator::buildConditions($where);
 
@@ -107,8 +107,13 @@ final class QueryGenerator
         return $jString;
     }
 
-    protected static function _buildColumns($columns)
+    protected static function _buildColumns($columns, $max)
     {
+        if ($max) {
+            [$column, $as] = $max;
+            $columns = " MAX(`{$column}`) AS `{$as}`";
+            dd($columns);
+        }
         $columns = is_array($columns) ? implode(',', $columns) : $columns;
         return $columns;
     }

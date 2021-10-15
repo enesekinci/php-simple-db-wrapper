@@ -68,8 +68,10 @@ $QueryBuilder->setFetchStyle(PDO::FETCH_CLASS);
 // dd(User::insert(['u' => 'test6']));
 // dd(User::findById(49));
 
-dd(User::orWhere(['u', 'test'])->whereIn(['u', ['test', 'test2', 'tet3', null]])->get());
+// dd(User::orWhere(['u', 'test'])->whereBetween(['u', [1, 100]])->whereNot(['u', '10'])->whereIn(['u', ['test', 'test2', 'tet3', null]])->get());
 
 // $data = $user->where(['u', 'test'])->get();
 
 // $data = $user->insert(['u' => 'test5']);
+
+dd(User::max('id'));

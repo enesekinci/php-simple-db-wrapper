@@ -129,7 +129,7 @@ abstract class QueryModel
 
     public static function __callStatic($methodName, $arguments)
     {
-        $queryMethods = ['where', 'orWhere', 'whereIn', 'orderBy', 'take', 'skip', 'select', 'get', 'delete'];
+        $queryMethods = ['where', 'orWhere', 'whereIn', 'orderBy', 'take', 'skip', 'select', 'get', 'delete', 'max', 'min', 'avg', 'sum'];
         if (in_array($methodName, $queryMethods)) {
             return static::database()->{$methodName}(...$arguments);
         } elseif ($methodName === 'update') {
