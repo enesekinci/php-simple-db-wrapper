@@ -74,4 +74,9 @@ $QueryBuilder->setFetchStyle(PDO::FETCH_CLASS);
 
 // $data = $user->insert(['u' => 'test5']);
 
-dd(User::max('id'));
+// dd(User::min('id'));
+
+$users = User::groupBy('u')->get();
+// dd($users);
+$filter_data = $users->value(['id', 'u']);
+dd($users, $filter_data);

@@ -6,10 +6,10 @@ use EnesEkinci\PhpSimpleDBWrapper\QueryConditionGenerator;
 
 final class QueryGenerator
 {
-    public static function select($table, $columns = '*', $limit = null, $offset = null, $where = [], $orderBy = [], array $max = [], array $joins = [])
+    public static function select($table, $columns = '*', $limit = null, $offset = null, $where = [], $orderBy = [], array $max = [], array $min = [], array $groupBy = [], array $joins = [])
     {
 
-        $columns = static::_buildColumns($columns, $max);
+        $columns = static::_buildColumns($columns, $max, $min);
 
         $conditionString = QueryConditionGenerator::buildConditions($where);
 
@@ -21,7 +21,9 @@ final class QueryGenerator
 
         $joinString = static::_buildJoin($joins);
 
-        $QueryString = "SELECT {$columns} FROM `{$table}` {$joinString} {$conditionString} {$orderString} {$limit} {$offset}";
+        $groupByString = static::_buildGroupBy($groupBy);
+
+        $QueryString = "SELECT {$columns} FROM `{$table}` {$joinString} {$conditionString} {$groupByString} {$orderString} {$limit} {$offset}";
         return $QueryString;
     }
 
@@ -35,7 +37,6 @@ final class QueryGenerator
         $valueParamString = implode(',', array_fill(0, count($fields), '?'));
 
         $QueryString = "INSERT INTO {$table} ({$fieldParamString}) VALUES ({$valueParamString})";
-        // dd($QueryString);
         return $QueryString;
     }
 
@@ -107,14 +108,29 @@ final class QueryGenerator
         return $jString;
     }
 
-    protected static function _buildColumns($columns, $max)
+    protected static function _buildColumns($columns, $max = [], $min = [])
     {
         if ($max) {
-            [$column, $as] = $max;
-            $columns = " MAX(`{$column}`) AS `{$as}`";
-            dd($columns);
+            $columns = " MAX(`{$max['column']}`) ";
+            if ($max['as']) {
+                $columns .= "AS `{$max['as']}`";
+            }
+        } elseif ($min) {
+            $columns = " MIN(`{$min['column']}`) ";
+            if ($min['as']) {
+                $columns .= "AS `{$min['as']}`";
+            }
         }
         $columns = is_array($columns) ? implode(',', $columns) : $columns;
         return $columns;
+    }
+
+    protected static function _buildGroupBy(array $groupBy)
+    {
+        $groupByString = "";
+        if ($groupBy) {
+            $groupByString .= 'GROUP BY ' . implode(',', $groupBy);
+        }
+        return $groupByString;
     }
 }

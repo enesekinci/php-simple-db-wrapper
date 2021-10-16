@@ -129,7 +129,7 @@ abstract class QueryModel
 
     public static function __callStatic($methodName, $arguments)
     {
-        $queryMethods = ['where', 'orWhere', 'whereIn', 'orderBy', 'take', 'skip', 'select', 'get', 'delete', 'max', 'min', 'avg', 'sum'];
+        $queryMethods = ['where', 'orWhere', 'whereIn', 'orderBy', 'take', 'skip', 'select', 'get', 'delete', 'max', 'min', 'avg', 'sum', 'groupBy'];
         if (in_array($methodName, $queryMethods)) {
             return static::database()->{$methodName}(...$arguments);
         } elseif ($methodName === 'update') {
@@ -138,5 +138,10 @@ abstract class QueryModel
             return self::$methodName(...$arguments);
         }
         throw new BadMethodCallException('method does not exist');
+    }
+
+    public function __get($key)
+    {
+        return property_exists($this, $key) ? $this->{$key} : null;
     }
 }

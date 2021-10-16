@@ -5,6 +5,7 @@ namespace EnesEkinci\PhpSimpleDBWrapper;
 use PDO;
 use stdClass;
 use Throwable;
+use EnesEkinci\PhpSimpleDBWrapper\Collect\Collect;
 
 final class QueryBuilder
 {
@@ -13,8 +14,8 @@ final class QueryBuilder
     protected $table;
     protected $select = '*';
     protected $count;
-    protected $max;
-    protected $min;
+    protected $max = [];
+    protected $min = [];
     protected $avg;
     protected $sum;
     protected $error = false;
@@ -24,6 +25,7 @@ final class QueryBuilder
     protected $offset;
     protected $where = [];
     protected $orderBy = [];
+    protected $joins = [];
     protected $result = null;
     protected $class = null;
 
@@ -93,6 +95,7 @@ final class QueryBuilder
         $this->error = false;
 
         dd($sql);
+
         $this->query = $this->pdo->prepare($sql);
 
         if (!$this->query) {
@@ -113,16 +116,15 @@ final class QueryBuilder
 
         if ($result) {
             if ($class &&  $this->fetchStyle === PDO::FETCH_CLASS) {
-                $this->result = $this->query->fetchAll($this->fetchStyle, $class);
+                $this->result = new Collect($this->query->fetchAll($this->fetchStyle, $class));
             } else {
-                $this->result = $this->query->fetchAll($this->fetchStyle);
+                $this->result = new Collect($this->query->fetchAll($this->fetchStyle));
             }
             $this->count = $this->query->rowCount();
             $this->lastInsertId = $this->pdo->lastInsertId();
         } else {
             $this->error = true;
         }
-
         return $this;
     }
 
@@ -132,7 +134,7 @@ final class QueryBuilder
             $class = $this->class;
         }
 
-        $SQL = QueryGenerator::select($this->table, $this->select, $this->limit, $this->offset, $this->where, $this->orderBy);
+        $SQL = QueryGenerator::select($this->table, $this->select, $this->limit, $this->offset, $this->where, $this->orderBy, [], [], $this->groupBy);
         $this->query($SQL, [], $class)
             ->restartParams();
         return $this->result();
@@ -354,29 +356,30 @@ final class QueryBuilder
         return array_map($callback, $this->result());
     }
 
-    public function pluck()
-    {
-    }
-
-    public function value()
-    {
-    }
-
     public function max(string $column, ?string $as = null)
     {
-        $this->max = ['column' => $column, 'as' => $as];
+        /**
+         * @todo 
+         * Buradaki result dönüşü QueryModel olarak dönüyor buna çeki düzen verilecek.
+         */
+        $this->max = ['column' => $column, 'as' => $as ?? $column];
         $SQL = QueryGenerator::select($this->table, $this->select, $this->limit, $this->offset, $this->where, $this->orderBy, $this->max);
         $this->query($SQL, [])
             ->restartParams();
-        return $this->result();
-
-        return $this->result();
+        return $this->first()->{$column} ?? null;
     }
 
-    public function min(array $column, ?string $as)
+    public function min(string $column, ?string $as = null)
     {
-        $this->min = ['column' => $column, 'as' => $as];
-        return $this;
+        /**
+         * @todo 
+         * Buradaki result dönüşü QueryModel olarak dönüyor buna çeki düzen verilecek.
+         */
+        $this->min = ['column' => $column, 'as' => $as ?? $column];
+        $SQL = QueryGenerator::select($this->table, $this->select, $this->limit, $this->offset, $this->where, $this->orderBy, $this->max, $this->min);
+        $this->query($SQL, [])
+            ->restartParams();
+        return $this->first()->{$column} ?? null;
     }
 
     public function avg(array $column, ?string $as)
@@ -391,42 +394,26 @@ final class QueryBuilder
         return $this;
     }
 
-    public function distinct()
+    public function groupBy(string $column)
     {
+        $this->groupBy[] = $column;
+        return $this;
     }
 
-    public function groupBy()
+    public function join(string $table, string $column, string $relationColumn, string $joinType)
     {
-    }
-
-    public function join()
-    {
-    }
-
-    public function leftJoin()
-    {
-    }
-
-    public function rightJoin()
-    {
-    }
-
-    public function crossJoin()
-    {
-    }
-
-
-
-    public function union()
-    {
+        $this->joins[] = [
+            'type' => $joinType,
+            'table' => $table,
+            'column' => $column,
+            'relationColumn' => $relationColumn,
+        ];
+        return $this;
     }
 
     public function whereJsonContains()
     {
-    }
-
-    public function whereDate()
-    {
+        #
     }
 
     public function setFetchStyle($fetchStyle)
@@ -453,4 +440,15 @@ final class QueryBuilder
         $this->where = [];
         $this->orderBy = [];
     }
+
+    /*
+    public function __set($key, $value)
+    {
+        if ($key === 'result') {
+            $this->result = is_array($value) ? new Collect($value) : $value;
+        } else {
+            $this->{$key} = $value;
+        }
+    }
+    */
 }

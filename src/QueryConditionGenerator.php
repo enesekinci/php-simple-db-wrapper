@@ -40,7 +40,9 @@ class QueryConditionGenerator
         $query  = implode(' ', $conditionStrings);
         $query = ltrim($query, ' OR');
         $query = ltrim($query, ' AND');
-        $query = 'WHERE ' . $query;
+        if ($query) {
+            $query = 'WHERE ' . $query;
+        }
         return $query;
     }
 
